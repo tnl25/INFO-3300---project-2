@@ -1,0 +1,21 @@
+body { 
+	font-family: "Poiret One"; }
+svg { 
+	border: solid black 1px; 
+	pointer-events: none; 
+}
+div {
+	overflow: hidden; 
+	color: white;
+}
+text {
+	text-anchor: middle;
+	pointer-events: auto; 
+	font-size: 25px;
+	alignment-baseline:middle;
+	font-weight: bolder;
+}
+
+#fbFemaleDemo, #fbMaleDemo, #fbUsers, #twFemaleDemo, #twMaleDemo, #twUsers{
+	display: inline-block;
+}

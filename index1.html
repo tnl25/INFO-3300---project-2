@@ -1,0 +1,249 @@
+<html>
+<head>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<link href='http://fonts.googleapis.com/css?family=Poiret+One' rel='stylesheet' type='text/css'>
+<link href='css/style.css' rel='stylesheet' type='text/css'>
+</head>
+<body>
+	<h1>Project 2</h1>
+
+
+
+	<div id="fbNetwork"></div>
+	<div id="twitterNetwork"></div>
+
+	<div class="Facebook">	
+		<div id="fbMaleDemo"></div>
+		<div id="fbFemaleDemo"></div>
+		<div id="fbUsers"></div>
+	</div>
+	<div class="Twitter">	
+		<div id="twMaleDemo"></div>
+		<div id="twFemaleDemo"></div>
+		<div id="twUsers"></div>
+	</div>
+
+<script>
+var height = 200;
+var width = 200;
+
+
+function randomIndex(array) {
+	return Math.floor(Math.random() * array.length);
+}
+function randomGraph(numNodes, numEdges) {
+	var graph = {
+		nodes: [],
+		links: []
+	};
+	for (var i=0; i < numNodes; i++) {
+		graph.nodes.push({ neighbors: [] });
+	}
+	for (var i=0; i < numEdges; i++) {
+		var source = randomIndex(graph.nodes);
+		var target = randomIndex(graph.nodes);
+				
+		graph.nodes[source].neighbors.push(target);
+		graph.nodes[target].neighbors.push(source);
+	
+		graph.links.push({ source: source, target: target });
+	}
+	
+	return graph;
+}
+function preferentialGraph(numNodes, numEdges, randomness) {
+	var graph = {
+		nodes: [],
+		links: []
+	};
+	for (var i=0; i < numNodes; i++) {
+		graph.nodes.push({ neighbors: [] });
+	}
+	for (var i=0; i < numEdges; i++) {
+		var source = randomIndex(graph.nodes);
+		var target;
+		
+		var randomProb = randomness / (randomness + graph.links.length);
+		if (Math.random() < randomProb) {
+			target = randomIndex(graph.nodes);
+		}
+		else {
+			// Copy the target of another link
+			target = graph.links[ randomIndex(graph.links) ].target;
+		}
+				
+		graph.nodes[source].neighbors.push(target);
+		graph.nodes[target].neighbors.push(source);
+	
+		graph.links.push({ source: source, target: target });
+	}
+	return graph;
+}
+function plotGraph(graph,divID){
+	var svg = d3.select("#" + divID).append("svg").attr("height", height).attr("width", width);
+
+	//create a force layout for the graph in the svg element
+	var lines, circles;		 
+	var force = d3.layout.force()
+    .size([width, height]);
+	force.nodes(graph.nodes)
+	.links(graph.links)
+	.start();
+	lines = svg.selectAll("line")
+	.data(graph.links);
+	
+	lines.enter()
+	 .append("line")
+	 .attr("class", "link")
+	 .attr("stroke", "black");
+ 
+	circles = svg.selectAll("circle")
+	 .data(graph.nodes);
+	 
+	circles.enter()
+	 .append("circle")
+	 .attr("class", "node")
+	 .attr("r", 1);
+	 
+	circles.style("fill", function(d) { 
+		 if (d.infected) { return "#bb0000"; }
+		 else { return "black"; }
+	  });
+	  
+	circles.call(force.drag);
+ 
+	force.on("tick", function() {
+	 lines.attr("x1", function(d) { return d.source.x; })
+	     .attr("y1", function(d) { return d.source.y; })
+	     .attr("x2", function(d) { return d.target.x; })
+	     .attr("y2", function(d) { return d.target.y; });
+	 circles.attr("cx", function(d) { return d.x; })
+	     .attr("cy", function(d) { return d.y; });
+	});
+ 	return graph;
+
+};	
+	//for Facebook network
+		//graph = preferentialGraph(4039,88234,0.6055);		
+		//splotGraph(graph,"fbNetwork");
+	//for Twitter network
+		//graph = preferentialGraph(81306,1768149,0.5653);	
+		//plotGraph(graph,"twitterNetwork");
+//circle graph to depict demographic 
+
+	//create scale and arc
+		var myScale = d3.scale.linear().domain([0, 100]).range([0, 2 * Math.PI]);
+		var insideArc = d3.svg.arc().innerRadius(43).outerRadius(67).startAngle(myScale(0));
+		var outsideArc = d3.svg.arc().innerRadius(40).outerRadius(70).startAngle(myScale(0));
+
+	//male Facebook
+		var fbMaleDemo = d3.select("#fbMaleDemo").append("svg")
+			.attr("width",width).attr("height",height).append("g")
+    		.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+		var fbMaleBackground = fbMaleDemo.append("path")
+			.datum({endAngle: myScale(100)})
+    		.style("fill", "#ddd")
+    		.attr("d", insideArc);
+    	var fbMaleForeground = fbMaleDemo.append("path")
+		    .datum({endAngle: myScale(66)})
+		    .style("fill", "#2568F8")
+		    .attr("d", outsideArc);
+		var fbMale = fbMaleDemo.append("text")
+			.text("66%").style("fill","#2568F8");
+		var fbMaleText = fbMaleDemo.append("text")
+			.text("66% FB users are Male").style("fill","black")
+			.style("font-size","15").attr("y","85");;	
+	//female Facebook
+		var fbFemaleDemo = d3.select("#fbFemaleDemo").append("svg")
+			.attr("width",width).attr("height",height).append("g")
+    		.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+		var fbFemaleBackground = fbFemaleDemo.append("path")
+			.datum({endAngle: myScale(100)})
+    		.style("fill", "#ddd")
+    		.attr("d", insideArc);
+    	var fbFemaleForeground = fbFemaleDemo.append("path")
+		    .datum({endAngle: myScale(76)})
+		    .style("fill", "#FD5B6E")
+		    .attr("d", outsideArc);
+		var fbFemale = fbFemaleDemo.append("text")
+			.text("76%").style("fill","#FD5B6E");
+		var fbFeText = fbFemaleDemo.append("text")
+			.text("76% FB users are Female").style("fill","black")
+			.style("font-size","15").attr("y","85");;
+	//facebook users 
+		var fbUsers = [67,71,71];
+		var fbUserDemo = d3.select("#fbUsers").append("svg")
+			.attr("width",width).attr("height",height).append("g")
+    		.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+		var fbUserBackground = fbUserDemo.append("path")
+			.datum({endAngle: myScale(100)})
+    		.style("fill", "#ddd")
+    		.attr("d", insideArc);
+    	var fbUserForeground = fbUserDemo.append("path")
+		    .datum({endAngle: myScale(71)})
+		    .style("fill", "#3b5998")
+		    .attr("d", outsideArc);
+		var fbUser = fbUserDemo.append("text")
+			.text("71%").style("fill","#3b5998");
+		var fbUserText = fbUserDemo.append("text")
+			.text("71% online adults use FB").style("fill","black")
+			.style("font-size","15").attr("y","85");;
+
+//male Twitter		
+		var twMaleDemo = d3.select("#twMaleDemo").append("svg")
+			.attr("width",width).attr("height",height).append("g")
+    		.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+		var twMaleBackground = twMaleDemo.append("path")
+			.datum({endAngle: myScale(100)})
+    		.style("fill", "#ddd")
+    		.attr("d", insideArc);
+    	var twMaleForeground = twMaleDemo.append("path")
+		    .datum({endAngle: myScale(17)})
+		    .style("fill", "#2568F8")
+		    .attr("d", outsideArc);
+		var twMale = twMaleDemo.append("text")
+			.text("17%").style("fill","#2568F8");
+		var twMaleText = twMaleDemo.append("text")
+			.text("17% Twitter users are Male").style("fill","black")
+			.style("font-size","15").attr("y","85");;
+//female Twitter
+		var twFemaleDemo = d3.select("#twFemaleDemo").append("svg")
+			.attr("width",width).attr("height",height).append("g")
+    		.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+		var twFemaleBackground = twFemaleDemo.append("path")
+			.datum({endAngle: myScale(100)})
+    		.style("fill", "#ddd")
+    		.attr("d", insideArc);
+    	var twFemaleForeground = twFemaleDemo.append("path")
+		    .datum({endAngle: myScale(18)})
+		    .style("fill", "#FD5B6E")
+		    .attr("d", outsideArc);
+		var twFemale = twFemaleDemo.append("text")
+			.text("18%").style("fill","#FD5B6E");
+		var twFeText = twFemaleDemo.append("text")
+			.text("18% Twitter users are Female").style("fill","black")
+			.style("font-size","15").attr("y","85");
+//Twitter users
+		//facebook users 
+		var twUsers = [16,18,23];
+		var twUserDemo = d3.select("#twUsers").append("svg")
+			.attr("width",width).attr("height",height).append("g")
+    		.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+		var twUserBackground = twUserDemo.append("path")
+			.datum({endAngle: myScale(100)})
+    		.style("fill", "#ddd")
+    		.attr("d", insideArc);
+    	var twUserForeground = twUserDemo.append("path")
+		    .datum({endAngle: myScale(23)})
+		    .style("fill", "#00aced")
+		    .attr("d", outsideArc);
+		var twUser = twUserDemo.append("text")
+			.text("23%").style("fill","#00aced");
+		var twUserText = twUserDemo.append("text")
+			.text("23% online adults use Twitter").style("fill","black")
+			.style("font-size","15").attr("y","85");;
+		
+</script>
+
+</body>
+</html>
